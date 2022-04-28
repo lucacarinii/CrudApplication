@@ -6,13 +6,14 @@ import Paper from '@mui/material/Paper'
 import Avatar from '@mui/material/Avatar'
 import LockIcon from '@mui/icons-material/Lock'
 import { TextField } from '@mui/material'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 function Register() {
   const [name, setName] = useState('')
   const [surname, setSurname] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const navigate = useNavigate()
 
   const baseUrl = 'http://0.0.0.0:8080/'
 
@@ -36,6 +37,7 @@ function Register() {
       )
       .then((response) => {
         console.log(response)
+        navigate('/homepage')
       })
   }
 
