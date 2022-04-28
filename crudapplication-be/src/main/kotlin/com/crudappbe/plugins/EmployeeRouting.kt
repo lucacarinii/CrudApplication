@@ -1,6 +1,6 @@
 package com.crudappbe.plugins
 
-import com.crudappbe.DB.DatabseConncetion
+import com.crudappbe.DB.DatabaseConncetion
 import com.crudappbe.entities.EmployeesEntity
 import com.crudappbe.jwt.TokenManager
 import com.crudappbe.model.Employee
@@ -21,7 +21,7 @@ import org.mindrot.jbcrypt.BCrypt
 
 fun Application.authRoutes() {
 
-    val db = DatabseConncetion.database
+    val db = DatabaseConncetion(HoconApplicationConfig(ConfigFactory.load())).database
     val tokenManager = TokenManager(HoconApplicationConfig(ConfigFactory.load()))
 
     routing {
