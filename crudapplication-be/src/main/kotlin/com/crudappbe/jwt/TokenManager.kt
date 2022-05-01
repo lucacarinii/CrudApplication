@@ -7,12 +7,12 @@ import com.crudappbe.model.Employee
 import io.ktor.server.config.HoconApplicationConfig
 import java.util.*
 
-class TokenManager (val config: HoconApplicationConfig) {
+    class TokenManager (val config: HoconApplicationConfig) {
 
     val audience = config.property("audience").getString()
     val secret = config.property("secret").getString()
     val issuer = config.property("issuer").getString()
-    val expirationDate = System.currentTimeMillis() + 60000
+    val expirationDate = System.currentTimeMillis() + 600000
 
     fun generateJwTToken(user: Employee): String {
         val token = JWT.create()

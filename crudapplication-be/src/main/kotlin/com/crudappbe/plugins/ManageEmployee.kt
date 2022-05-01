@@ -34,7 +34,8 @@ fun Application.manageEmployeeRoutes() {
                             it[EmployeesEntity.name] ?: "",
                             it[EmployeesEntity.surname] ?: "",
                             it[EmployeesEntity.email] ?: "",
-                            it[EmployeesEntity.idRole] ?: -1, "")
+                            it[EmployeesEntity.idRole] ?: -1, "",
+                            it[EmployeesEntity.isLogged] ?: false)
                     }
 
                 call.respond(HttpStatusCode.OK, Response(
@@ -54,7 +55,8 @@ fun Application.manageEmployeeRoutes() {
                             it[EmployeesEntity.name] ?: "",
                             it[EmployeesEntity.surname] ?: "",
                             it[EmployeesEntity.email] ?: "",
-                            it[EmployeesEntity.idRole] ?: -1, "")
+                            it[EmployeesEntity.idRole] ?: -1, "",
+                            it[EmployeesEntity.isLogged] ?: false)
                     }.firstOrNull()
 
                 if(employee == null) {
@@ -112,6 +114,30 @@ fun Application.manageEmployeeRoutes() {
                     call.respond(HttpStatusCode.BadRequest, Response(
                         result = false,
                         data = "Employee Not deleted"
+                    ))
+                }
+            }
+            get("/islogged/{email}") {
+                val email = call.parameters["email"] ?: ""
+
+                val user = db.from(EmployeesEntity).select()
+                    .where { EmployeesEntity.email eq email }
+                    .map {
+                        it[EmployeesEntity.isLogged]
+                    }.firstOrNull()
+
+                if(user == null){
+                    System.out.println("USER NOT PRESENT")
+                    call.respond(HttpStatusCode.BadRequest, Response(
+                        result = false,
+                        data = "User not present"
+                    ))
+                }
+                else {
+                    System.out.println("USER PRESENT")
+                    call.respond(HttpStatusCode.OK, Response(
+                        result = true,
+                        data = user
                     ))
                 }
             }

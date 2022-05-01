@@ -64,6 +64,7 @@ fun Application.authRoutes() {
                 set(it.idRole, idRole)
                 set(it.email, email)
                 set(it.password, password)
+                set(it.isLogged, false)
             }
 
             call.respond(HttpStatusCode.OK, Response(
@@ -71,7 +72,6 @@ fun Application.authRoutes() {
                 data = "User created"
             ))
         }
-
         post("/login") {
             val userCreds = call.receive<LoginUserCredentials>()
 
@@ -98,7 +98,8 @@ fun Application.authRoutes() {
                     val email = it[EmployeesEntity.email]!!
                     val password = it[EmployeesEntity.password]!!
                     val idRole = it[EmployeesEntity.idRole]!!
-                    Employee(emplId, name, surname, email, idRole, password)
+                    val isLogged = it[EmployeesEntity.isLogged]!!
+                    Employee(emplId, name, surname, email, idRole, password, isLogged)
                 }.firstOrNull()
 
             if(user == null) {
@@ -120,6 +121,10 @@ fun Application.authRoutes() {
             }
 
             val token = tokenManager.generateJwTToken(user)
+            db.update(EmployeesEntity) {
+                where { EmployeesEntity.emplId eq user.emplId }
+                set(it.isLogged, true)
+            }
 
             call.respond(HttpStatusCode.OK,
                 Response(

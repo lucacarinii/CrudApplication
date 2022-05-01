@@ -9,5 +9,6 @@ data class Employee(
     val surname: String,
     val email: String,
     val idRole: Int,
-    val password: String
+    val password: String,
+    val isLogged: Boolean
 )
