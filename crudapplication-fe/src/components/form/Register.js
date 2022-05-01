@@ -37,7 +37,7 @@ function Register() {
       )
       .then((response) => {
         console.log(response)
-        navigate('/homepage')
+        navigate('/login')
       })
   }
 

@@ -31,7 +31,8 @@ function Login() {
         }
       )
       .then((response) => {
-        console.log(response)
+        localStorage.setItem('token', response.data.data)
+        localStorage.setItem('email', email)
         navigate('/homepage')
       })
   }
