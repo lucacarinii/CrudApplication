@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import axios from 'axios'
 import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
@@ -7,11 +7,13 @@ import Avatar from '@mui/material/Avatar'
 import LockIcon from '@mui/icons-material/Lock'
 import { TextField } from '@mui/material'
 import { Link, useNavigate } from 'react-router-dom'
+import { AuthContext } from '../AuthContextJWT/AuthContext'
 
 function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const navigate = useNavigate()
+  const { token, setToken } = useContext(AuthContext)
 
   const baseUrl = 'http://0.0.0.0:8080/'
 
@@ -33,6 +35,8 @@ function Login() {
       .then((response) => {
         localStorage.setItem('token', response.data.data)
         localStorage.setItem('email', email)
+        setToken(response.data.data)
+
         navigate('/homepage')
       })
   }
