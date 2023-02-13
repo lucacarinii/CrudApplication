@@ -8,14 +8,14 @@ import LockIcon from '@mui/icons-material/Lock'
 import { TextField } from '@mui/material'
 import { Link, useNavigate } from 'react-router-dom'
 import { AuthContext } from '../AuthContextJWT/AuthContext'
+import { baseUrl } from '../util/Constants'
 
 function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const navigate = useNavigate()
   const { token, setToken } = useContext(AuthContext)
-
-  const baseUrl = 'http://0.0.0.0:8080/'
+  const { refreshToken, setRefreshToken } = useContext(AuthContext)
 
   const loginUser = (event) => {
     event.preventDefault()
@@ -33,9 +33,10 @@ function Login() {
         }
       )
       .then((response) => {
-        localStorage.setItem('token', response.data.data)
+        console.log(response.data)
         localStorage.setItem('email', email)
-        setToken(response.data.data)
+        setToken(response.data.data.token)
+        setRefreshToken(response.data.data.refreshToken)
 
         navigate('/homepage')
       })

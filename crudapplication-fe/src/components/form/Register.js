@@ -7,6 +7,7 @@ import Avatar from '@mui/material/Avatar'
 import LockIcon from '@mui/icons-material/Lock'
 import { TextField } from '@mui/material'
 import { Link, useNavigate } from 'react-router-dom'
+import { baseUrl } from '../util/Constants'
 
 function Register() {
   const [name, setName] = useState('')
@@ -14,8 +15,6 @@ function Register() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const navigate = useNavigate()
-
-  const baseUrl = 'http://0.0.0.0:8080/'
 
   const registerUser = (event) => {
     event.preventDefault()

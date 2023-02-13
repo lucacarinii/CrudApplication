@@ -11,6 +11,7 @@ import UpdateEmployee from './components/employee/UpdateEmployee'
 import DeleteEmployee from './components/employee/DeleteEmployee'
 import ProtectedRoutes from './components/ProtectedRoutes'
 import { AuthProvider } from './components/AuthContextJWT/AuthContext'
+import EmployeeDetail from './components/employee/EmployeeDetail'
 
 const root = ReactDOM.createRoot(document.getElementById('root'))
 root.render(
@@ -25,6 +26,7 @@ root.render(
           <Route path="findemployee" element={<FindEmployee />} />
           <Route path="updateemployee" element={<UpdateEmployee />} />
           <Route path="deleteemployee" element={<DeleteEmployee />} />
+          <Route path="employeedetail" element={<EmployeeDetail />} />
         </Route>
       </Routes>
     </BrowserRouter>

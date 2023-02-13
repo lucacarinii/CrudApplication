@@ -2,10 +2,11 @@ import axios from 'axios'
 import React, { useContext, useState } from 'react'
 import { Outlet, Navigate } from 'react-router-dom'
 import { AuthContext } from './AuthContextJWT/AuthContext'
+import { baseUrl } from './util/Constants'
 
 const ProtectedRoutes = () => {
   const [isAuth, setIsAuth] = useState()
-  const baseUrl = 'http://0.0.0.0:8080/'
+
   const { token, setToken } = useContext(AuthContext)
 
   useState(() => {

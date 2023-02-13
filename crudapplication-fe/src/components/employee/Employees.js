@@ -1,12 +1,12 @@
 import React, { useContext, useState, useEffect } from 'react'
 import axios from 'axios'
 import { AuthContext } from '../AuthContextJWT/AuthContext'
+import DynamicTable from '../DynamicTable'
+import { baseUrl } from '../util/Constants'
 
 const Employees = () => {
   const { token, setToken } = useContext(AuthContext)
   const [employees, setEmployees] = useState([])
-
-  const baseUrl = 'http://0.0.0.0:8080/'
 
   useEffect(() => {
     axios
@@ -20,15 +20,12 @@ const Employees = () => {
         setEmployees(response.data.data)
       })
   }, [])
-  return (
-    <>
-      {employees.map((employee) => (
-        <p key={employee.emplId}>
-          {employee.name} {employee.surname}
-        </p>
-      ))}
-    </>
-  )
+
+  if (!employees || employees.length === 0) {
+    return <div>Loading...</div>
+  } else {
+    return <DynamicTable data={employees} link="/homepage" hpButton={true} />
+  }
 }
 
 export default Employees
