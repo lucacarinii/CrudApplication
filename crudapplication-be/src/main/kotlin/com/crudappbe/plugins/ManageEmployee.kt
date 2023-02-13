@@ -3,6 +3,7 @@ package com.crudappbe.plugins
 import com.crudappbe.DB.DatabaseConncetion
 import com.crudappbe.entities.EmployeesEntity
 import com.crudappbe.model.Employee
+import com.crudappbe.model.EmployeeListFind
 import com.crudappbe.model.EmployeeRequest
 import com.crudappbe.model.Response
 import com.typesafe.config.ConfigFactory
@@ -10,15 +11,11 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
-import io.ktor.server.auth.jwt.JWTPrincipal
-import io.ktor.server.auth.principal
 import io.ktor.server.config.HoconApplicationConfig
 import io.ktor.server.request.receive
+import io.ktor.server.request.receiveText
 import io.ktor.server.response.respond
-import io.ktor.server.routing.delete
-import io.ktor.server.routing.get
-import io.ktor.server.routing.put
-import io.ktor.server.routing.routing
+import io.ktor.server.routing.*
 import org.ktorm.dsl.*
 
 fun Application.manageEmployeeRoutes() {
@@ -30,12 +27,11 @@ fun Application.manageEmployeeRoutes() {
             get("/employees") {
                 val employees = db.from(EmployeesEntity).select()
                     .map {
-                        Employee(it[EmployeesEntity.emplId] ?: -1,
+                        EmployeeListFind(it[EmployeesEntity.emplId] ?: -1,
                             it[EmployeesEntity.name] ?: "",
                             it[EmployeesEntity.surname] ?: "",
                             it[EmployeesEntity.email] ?: "",
-                            it[EmployeesEntity.idRole] ?: -1, "",
-                            it[EmployeesEntity.isLogged] ?: false)
+                            it[EmployeesEntity.idRole] ?: -1)
                     }
 
                 call.respond(HttpStatusCode.OK, Response(
@@ -44,6 +40,7 @@ fun Application.manageEmployeeRoutes() {
                 ))
             }
             get("/employees/{id}") {
+                print(call.parameters["id"])
                 val emplId = call.parameters["id"]?.toInt() ?: -1
 
                 val employee = db.from(EmployeesEntity).select()
@@ -51,12 +48,11 @@ fun Application.manageEmployeeRoutes() {
                         EmployeesEntity.emplId eq emplId
                     }
                     .map {
-                        Employee(it[EmployeesEntity.emplId] ?: -1,
+                        EmployeeListFind(it[EmployeesEntity.emplId] ?: -1,
                             it[EmployeesEntity.name] ?: "",
                             it[EmployeesEntity.surname] ?: "",
                             it[EmployeesEntity.email] ?: "",
-                            it[EmployeesEntity.idRole] ?: -1, "",
-                            it[EmployeesEntity.isLogged] ?: false)
+                            it[EmployeesEntity.idRole] ?: -1)
                     }.firstOrNull()
 
                 if(employee == null) {
@@ -117,6 +113,41 @@ fun Application.manageEmployeeRoutes() {
                     ))
                 }
             }
+            post("/employee") {
+
+                val findEmployee = call.receive<EmployeeListFind>()
+
+                val employees = db.from(EmployeesEntity).select()
+                    .where {
+                        (if(findEmployee.emplId == -1) EmployeesEntity.emplId like "%%"
+                                else EmployeesEntity.emplId like "%" + findEmployee.emplId + "%") and
+                                (EmployeesEntity.name like "%" + findEmployee.name + "%") and
+                                (EmployeesEntity.surname like "%" + findEmployee.surname + "%") and
+                                (EmployeesEntity.email like "%" + findEmployee.email + "%") and
+                                (if(findEmployee.idRole == -1) EmployeesEntity.idRole like "%%"
+                                        else EmployeesEntity.idRole like "%" + findEmployee.idRole + "%")
+                    }
+                    .map {
+                        EmployeeListFind(it[EmployeesEntity.emplId] ?: -1,
+                            it[EmployeesEntity.name] ?: "",
+                            it[EmployeesEntity.surname] ?: "",
+                            it[EmployeesEntity.email] ?: "",
+                            it[EmployeesEntity.idRole] ?: -1)
+                    }
+
+                if(employees.isEmpty()) {
+                    call.respond(HttpStatusCode.NotFound, Response(
+                        result = true,
+                        data = "Not Found"
+                    )
+                    )
+                }
+
+                call.respond(HttpStatusCode.OK, Response(
+                    result = true,
+                    data = employees
+                ))
+            }
             get("/islogged/{email}") {
                 val email = call.parameters["email"] ?: ""
 
@@ -127,14 +158,14 @@ fun Application.manageEmployeeRoutes() {
                     }.firstOrNull()
 
                 if(user == null){
-                    System.out.println("USER NOT PRESENT")
+                    println("USER NOT PRESENT")
                     call.respond(HttpStatusCode.BadRequest, Response(
                         result = false,
                         data = "User not present"
                     ))
                 }
                 else {
-                    System.out.println("USER PRESENT")
+                    println("USER PRESENT")
                     call.respond(HttpStatusCode.OK, Response(
                         result = true,
                         data = user

@@ -3,4 +3,4 @@ package com.crudappbe.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class TokenRequest (val refreshToken: String, val email: String)
+data class TokenResponse(val token: String, val refreshToken: String)

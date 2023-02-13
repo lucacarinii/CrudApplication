@@ -14,4 +14,6 @@ object EmployeesEntity: Table<Nothing>("employees") {
     val idRole = int("idRole")
     val password = varchar("password")
     val isLogged = boolean("isLogged")
+    val jwt = varchar("jwt")
+    val refreshToken = varchar("refreshToken")
 }

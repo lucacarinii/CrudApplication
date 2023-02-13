@@ -10,5 +10,6 @@ data class Employee(
     val email: String,
     val idRole: Int,
     val password: String,
-    val isLogged: Boolean
+    val isLogged: Boolean,
+    val tokens : TokenResponse
 )
