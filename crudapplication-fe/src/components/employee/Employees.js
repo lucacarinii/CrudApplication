@@ -1,30 +1,31 @@
 import React, { useContext, useState, useEffect } from 'react'
-import axios from 'axios'
 import { AuthContext } from '../AuthContextJWT/AuthContext'
 import DynamicTable from '../DynamicTable'
-import { baseUrl } from '../util/Constants'
+import getEmployees from './GetEmployees'
+import deleteEmployee from './DeleteEmployee'
 
 const Employees = () => {
   const { token, setToken } = useContext(AuthContext)
   const [employees, setEmployees] = useState([])
-
+  console.log(token)
   useEffect(() => {
-    axios
-      .get(baseUrl + 'employees', {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((response) => {
-        setEmployees(response.data.data)
-      })
+    getEmployees(token, setEmployees)
   }, [])
 
   if (!employees || employees.length === 0) {
     return <div>Loading...</div>
   } else {
-    return <DynamicTable data={employees} link="/homepage" hpButton={true} />
+    return (
+      <DynamicTable
+        data={employees}
+        link="/homepage"
+        hpButton={true}
+        deleteEmployee={deleteEmployee}
+        token={token}
+        getList={getEmployees}
+        setList={setEmployees}
+      />
+    )
   }
 }
 

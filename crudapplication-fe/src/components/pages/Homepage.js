@@ -24,6 +24,7 @@ const Homepage = () => {
         }
       )
       .then((response) => {
+        console.log('Token refreshed')
         setToken(response.data.data.token)
         setRefreshToken(response.data.data.refreshToken)
       })

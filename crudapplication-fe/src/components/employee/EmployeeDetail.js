@@ -4,11 +4,15 @@ import { Link, useLocation } from 'react-router-dom'
 import { baseUrl } from '../util/Constants'
 import { AuthContext } from '../AuthContextJWT/AuthContext'
 import { Button, Grid, Paper } from '@mui/material'
+import deleteEmployee from './DeleteEmployee'
+import { useNavigate } from 'react-router-dom'
 
-const EmployeeDetail = (props) => {
+const EmployeeDetail = () => {
   const [employee, setEmployee] = useState()
   const { token, setToken } = useContext(AuthContext)
   const location = useLocation()
+  const navigate = useNavigate()
+
   useEffect(() => {
     axios
       .get(baseUrl + 'employees/' + location.state.emplId, {
@@ -31,7 +35,7 @@ const EmployeeDetail = (props) => {
           elevation={10}
           style={{
             padding: 10,
-            height: '35vh',
+            height: '40vh',
             width: 380,
             margin: '20px auto',
           }}
@@ -48,6 +52,19 @@ const EmployeeDetail = (props) => {
             <b>Email:</b>
           </label>
           <p>{employee.email}</p>
+          <Button
+            style={{ marginTop: '15px' }}
+            type="submit"
+            color="primary"
+            fullWidth
+            variant="contained"
+            onClick={() => {
+              var isDeleted = deleteEmployee(employee.emplId, token)
+              isDeleted ? navigate('/employees') : console.log('Error')
+            }}
+          >
+            Delete employee
+          </Button>
           <Link to="/employees">
             <Button
               style={{ marginTop: '15px' }}

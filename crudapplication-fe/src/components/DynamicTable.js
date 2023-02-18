@@ -9,8 +9,10 @@ import Paper from '@mui/material/Paper'
 import SearchIcon from '@mui/icons-material/Search'
 import { Link } from 'react-router-dom'
 import Button from '@mui/material/Button'
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 
 const DynamicTable = (props) => {
+  console.log(props.setList)
   return (
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 650 }} aria-label="dynamic table">
@@ -35,6 +37,7 @@ const DynamicTable = (props) => {
             )}
           </TableRow>
           <TableRow>
+            <TableCell>Actions</TableCell>
             {Object.keys(props.data[0]).map((key) => (
               <TableCell key={key}>{key}</TableCell>
             ))}
@@ -45,15 +48,32 @@ const DynamicTable = (props) => {
             <TableRow key={index}>
               {Object.values(row).map((value, index) =>
                 index === 0 ? (
-                  <TableCell key={index}>
-                    <Link
-                      to="/EmployeeDetail"
-                      state={{ emplId: value }}
-                      replace
-                    >
-                      <SearchIcon />
-                    </Link>
-                  </TableCell>
+                  <>
+                    <TableCell key={index}>
+                      <Link
+                        to="/EmployeeDetail"
+                        state={{ emplId: value }}
+                        replace
+                      >
+                        <SearchIcon />
+                      </Link>
+                      {props.deleteEmployee != null ? (
+                        <DeleteForeverIcon
+                          onClick={() =>
+                            props.deleteEmployee(
+                              value,
+                              props.token,
+                              props.getList,
+                              props.setList
+                            )
+                          }
+                        />
+                      ) : (
+                        <></>
+                      )}
+                    </TableCell>
+                    <TableCell key={index + value}>{value}</TableCell>
+                  </>
                 ) : (
                   <TableCell key={index}>{value}</TableCell>
                 )
