@@ -9,7 +9,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
 import io.ktor.server.config.HoconApplicationConfig
-import io.ktor.server.request.header
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.post
@@ -99,9 +98,7 @@ fun Application.authRoutes() {
                     val password = it[EmployeesEntity.password]!!
                     val idRole = it[EmployeesEntity.idRole]!!
                     val isLogged = it[EmployeesEntity.isLogged]!!
-                    val jwt = it[EmployeesEntity.jwt]!!
-                    val refreshToken = it[EmployeesEntity.refreshToken]!!
-                    Employee(emplId, name, surname, email, idRole, password, isLogged, TokenResponse(jwt, refreshToken))
+                    Employee(emplId, name, surname, email, idRole, password, isLogged, null)
                 }.firstOrNull()
 
             if(user == null) {
@@ -177,7 +174,7 @@ fun Application.authRoutes() {
                 return@post
             }
 
-            if(user.tokens.refreshToken != details.refreshToken) {
+            if(user.tokens == null || user.tokens.refreshToken != details.refreshToken) {
                 call.respond(HttpStatusCode.BadRequest, Response(
                     result = false,
                     data = "Bad refresh token"

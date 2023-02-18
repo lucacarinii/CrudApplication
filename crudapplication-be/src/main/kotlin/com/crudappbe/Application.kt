@@ -35,7 +35,7 @@ fun main() {
                 }
             }
         }
-        install(CORS) {
+        install(CORS) { 
             allowMethod(HttpMethod.Options)
             allowMethod(HttpMethod.Put)
             allowMethod(HttpMethod.Delete)

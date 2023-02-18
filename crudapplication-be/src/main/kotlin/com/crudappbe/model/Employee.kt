@@ -11,5 +11,5 @@ data class Employee(
     val idRole: Int,
     val password: String,
     val isLogged: Boolean,
-    val tokens : TokenResponse
+    val tokens: TokenResponse?
 )
