@@ -3,7 +3,6 @@ import { baseUrl } from '../util/Constants'
 import axios from 'axios'
 
 const deleteEmployee = (emplId, token, getEmployees, setEmployees) => {
-  console.log(token)
   axios
     .delete(baseUrl + 'employees/' + emplId, {
       headers: {

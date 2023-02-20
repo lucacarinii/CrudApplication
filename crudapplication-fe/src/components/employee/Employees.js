@@ -7,7 +7,7 @@ import deleteEmployee from './DeleteEmployee'
 const Employees = () => {
   const { token, setToken } = useContext(AuthContext)
   const [employees, setEmployees] = useState([])
-  console.log(token)
+
   useEffect(() => {
     getEmployees(token, setEmployees)
   }, [])

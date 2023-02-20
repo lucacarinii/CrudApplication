@@ -20,6 +20,7 @@ const Homepage = () => {
         {
           headers: {
             'Access-Control-Allow-Origin': '*',
+            Authorization: `Bearer ${token}`,
           },
         }
       )
@@ -29,6 +30,28 @@ const Homepage = () => {
         setRefreshToken(response.data.data.refreshToken)
       })
   }, [])
+
+  const logout = () => {
+    axios
+      .post(
+        baseUrl + 'logout',
+        {
+          refreshToken: refreshToken,
+          email: localStorage.getItem('email'),
+        },
+        {
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then((response) => {
+        setToken('')
+        setRefreshToken('')
+        console.log(response.data)
+      })
+  }
 
   return (
     <Grid>
@@ -61,6 +84,18 @@ const Homepage = () => {
             variant="contained"
           >
             Find Employee
+          </Button>
+        </Link>
+        <Link to="/login">
+          <Button
+            style={{ marginTop: '15px' }}
+            type="submit"
+            color="primary"
+            fullWidth
+            variant="contained"
+            onClick={() => logout()}
+          >
+            logout
           </Button>
         </Link>
       </Paper>

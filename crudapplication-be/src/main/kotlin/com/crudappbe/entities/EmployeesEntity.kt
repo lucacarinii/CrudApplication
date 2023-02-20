@@ -1,6 +1,5 @@
 package com.crudappbe.entities
 
-import org.ktorm.entity.Entity
 import org.ktorm.schema.Table
 import org.ktorm.schema.boolean
 import org.ktorm.schema.int

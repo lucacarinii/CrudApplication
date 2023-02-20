@@ -2,12 +2,16 @@ package com.crudappbe.plugins
 
 import com.crudappbe.DB.DatabaseConncetion
 import com.crudappbe.entities.EmployeesEntity
+import com.crudappbe.entities.TokensBlacklistEntity
 import com.crudappbe.jwt.TokenManager
 import com.crudappbe.model.*
 import com.typesafe.config.ConfigFactory
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationCallPipeline
 import io.ktor.server.application.call
+import io.ktor.server.auth.authenticate
 import io.ktor.server.config.HoconApplicationConfig
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -119,6 +123,10 @@ fun Application.authRoutes() {
                 return@post
             }
 
+            db.delete(TokensBlacklistEntity) {
+                it.email eq user.email
+            }
+
             val token = tokenManager.generateJwTToken(user)
             val refreshToken = tokenManager.generateRefreshToken()
             val tokenResponse = TokenResponse(token, refreshToken)
@@ -135,69 +143,124 @@ fun Application.authRoutes() {
                     data = tokenResponse
                 ))
         }
-        post("/refresh") {
-            val details = call.receive<TokenRequest>()
+        authenticate {
 
-            if(details.refreshToken.isEmpty() || details.email.isEmpty()) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    Response(
+            intercept(ApplicationCallPipeline.Call) {
+                val token = call.request.headers["Authorization"]?.replace("Bearer ", "")
+                val tokensBlacklisted = db.from(TokensBlacklistEntity).select()
+                    .map {
+                        TokenBlacklist(
+                            it[TokensBlacklistEntity.token] ?: "",
+                            it[TokensBlacklistEntity.refreshToken] ?: ""
+                        )
+                    }
+                tokensBlacklisted.forEach { tokenB -> if(tokenB.token.equals(token)) {
+                    print("TOKEN: $token\nDB TOKEN: $tokenB\n")
+                    return@intercept finish()
+                }
+                }
+            }
+
+            post("/refresh") {
+                val details = call.receive<TokenRequest>()
+
+                if(details.refreshToken.isEmpty() || details.email.isEmpty()) {
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        Response(
+                            result = false,
+                            data = "Bad req"
+                        )
+                    )
+                    return@post
+                }
+
+                val user = db.from(EmployeesEntity).select()
+                    .where {
+                        EmployeesEntity.email eq details.email
+                    }
+                    .map {
+                        val emplId = it[EmployeesEntity.emplId]!!
+                        val name = it[EmployeesEntity.name]!!
+                        val surname = it[EmployeesEntity.surname]!!
+                        val email = it[EmployeesEntity.email]!!
+                        val password = it[EmployeesEntity.password]!!
+                        val idRole = it[EmployeesEntity.idRole]!!
+                        val isLogged = it[EmployeesEntity.isLogged]!!
+                        val jwt = it[EmployeesEntity.jwt]!!
+                        val refreshToken = it[EmployeesEntity.refreshToken]!!
+                        Employee(emplId, name, surname, email, idRole, password, isLogged, TokenResponse(jwt, refreshToken))
+                    }.firstOrNull()
+
+                if(user == null) {
+                    call.respond(HttpStatusCode.BadRequest, Response(
                         result = false,
-                        data = "Bad req"
+                        data = "User not present"
+                    ))
+                    return@post
+                }
+
+                if(user.tokens == null || user.tokens.refreshToken != details.refreshToken) {
+                    call.respond(HttpStatusCode.BadRequest, Response(
+                        result = false,
+                        data = "Bad refresh token"
+                    ))
+                    return@post
+                }
+
+                val token = tokenManager.generateJwTToken(user)
+                val refreshToken = tokenManager.generateRefreshToken()
+                val tokenResponse = TokenResponse(token, refreshToken)
+
+                db.update(EmployeesEntity) {
+                    where { EmployeesEntity.emplId eq user.emplId }
+                    set(it.isLogged, true)
+                    set(it.jwt, token)
+                    set(it.refreshToken, refreshToken)
+                }
+
+                call.respond(HttpStatusCode.OK,
+                    Response(
+                        result = true,
+                        data = tokenResponse
                     )
                 )
-                return@post
             }
+            post("/logout") {
+                val details = call.receive<TokenRequest>()
+                val token = call.request.headers[HttpHeaders.Authorization]!!.replace("Bearer ", "")
 
-            val user = db.from(EmployeesEntity).select()
-                .where {
-                    EmployeesEntity.email eq details.email
+                if(details.refreshToken.isEmpty() || details.email.isEmpty()) {
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        Response(
+                            result = false,
+                            data = "Bad req"
+                        )
+                    )
+                    return@post
                 }
-                .map {
-                    val emplId = it[EmployeesEntity.emplId]!!
-                    val name = it[EmployeesEntity.name]!!
-                    val surname = it[EmployeesEntity.surname]!!
-                    val email = it[EmployeesEntity.email]!!
-                    val password = it[EmployeesEntity.password]!!
-                    val idRole = it[EmployeesEntity.idRole]!!
-                    val isLogged = it[EmployeesEntity.isLogged]!!
-                    val jwt = it[EmployeesEntity.jwt]!!
-                    val refreshToken = it[EmployeesEntity.refreshToken]!!
-                    Employee(emplId, name, surname, email, idRole, password, isLogged, TokenResponse(jwt, refreshToken))
-                }.firstOrNull()
 
-            if(user == null) {
-                call.respond(HttpStatusCode.BadRequest, Response(
-                    result = false,
-                    data = "User not present"
-                ))
-                return@post
+                db.insert(TokensBlacklistEntity) {
+                    set(it.token, token)
+                    set(it.refreshToken, details.refreshToken)
+                    set(it.email, details.email)
+                }
+
+                db.update(EmployeesEntity) {
+                    where{ EmployeesEntity.email eq details.email }
+                    set(it.isLogged, false)
+                    set(it.refreshToken, null)
+                    set(it.jwt, null)
+                }
+
+                call.respond(HttpStatusCode.OK,
+                    Response(
+                        result = true,
+                        data = "Logged out"
+                    )
+                )
             }
-
-            if(user.tokens == null || user.tokens.refreshToken != details.refreshToken) {
-                call.respond(HttpStatusCode.BadRequest, Response(
-                    result = false,
-                    data = "Bad refresh token"
-                ))
-                return@post
-            }
-
-            val token = tokenManager.generateJwTToken(user)
-            val refreshToken = tokenManager.generateRefreshToken()
-            val tokenResponse = TokenResponse(token, refreshToken)
-
-            db.update(EmployeesEntity) {
-                where { EmployeesEntity.emplId eq user.emplId }
-                set(it.isLogged, true)
-                set(it.jwt, token)
-                set(it.refreshToken, refreshToken)
-            }
-
-            call.respond(HttpStatusCode.OK,
-                Response(
-                    result = true,
-                    data = tokenResponse
-                ))
         }
     }
 }
